@@ -3,7 +3,13 @@
 *.lo
 *.o
 *.obj
-
+Debug/
+MedianFilterSerial.opensdf
+MedianFilterSerial.sdf
+MedianFilterSerial.sln
+MedianFilterSerial.v12.suo
+MedianFilterSerial.vcxproj
+MedianFilterSerial.vcxproj.filters
 # Precompiled Headers
 *.gch
 *.pch
