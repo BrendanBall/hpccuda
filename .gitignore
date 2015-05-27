@@ -3,6 +3,8 @@
 *.lo
 *.o
 *.obj
+.depend
+medianfilter
 Debug/
 MedianFilterSerial.opensdf
 MedianFilterSerial.sdf
