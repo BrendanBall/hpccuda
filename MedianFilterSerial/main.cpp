@@ -1,5 +1,6 @@
 #include <iostream>
 #include "inputstream.h"
+#include "structs.h"
 
 bool isLittleEndian()
 {
@@ -26,6 +27,15 @@ int main(int argc, char* argv[])
 			std::string filename = argv[1];
 			std::cout << filename.c_str() << std::endl;
 			hpcserial::inputstream inputstream(filename);
+
+			hpc::array<float>* chunk = inputstream.nextChunk();
+
+
+			for (unsigned int i = 0; i < chunk -> size; ++i)
+			{
+				std::cout << chunk -> pointer[i] << std::endl;
+
+			}
 		}
 		else
 		{
