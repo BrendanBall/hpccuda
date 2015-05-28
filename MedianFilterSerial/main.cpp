@@ -21,8 +21,17 @@ int main(int argc, char* argv[])
 	// This program will only work on systems using little endian as the binary data will be copied straight into memory as floats
 	if (isLittleEndian())
 	{
-		std::string filename = "H:\\documents\\csc4000w\\HPC\\Points_[1.0e+08]_Noise_[030]_Normal.bin";
-		hpcserial::inputstream inputstream(filename);
+		if (argc >= 2)
+		{
+			std::string filename = argv[1];
+			std::cout << filename.c_str() << std::endl;
+			hpcserial::inputstream inputstream(filename);
+		}
+		else
+		{
+			std::cout << "Pass filename as first commandline arg";
+		}
+		
 	}
 	else
 	{

@@ -4,6 +4,8 @@
 *.o
 *.obj
 .depend
+*.bin
+*.user
 medianfilter
 Debug/
 MedianFilterSerial.opensdf
