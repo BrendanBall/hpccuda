@@ -1,4 +1,5 @@
 #include "inputstream.h"
+#include "structs.h"
 
 
 hpcserial::inputstream::inputstream(const std::string &filename) : filename(filename)
@@ -8,12 +9,14 @@ hpcserial::inputstream::inputstream(const std::string &filename) : filename(file
 	{
 		int numFloats = 10;
 		char* memblock = new char[numFloats*sizeof(float)];
-		float* f = (float*)memblock;
+
+		hpc::array<float> farr(numFloats, (float*)memblock);
+
 		binfile.read(memblock, numFloats*sizeof(float));
 
 		for (int i = 0; i < numFloats; ++i)
 		{
-			std::cout << f[i] << std::endl;
+			std::cout << farr.pointer[i] << std::endl;
 
 		}
 		delete[] memblock;
