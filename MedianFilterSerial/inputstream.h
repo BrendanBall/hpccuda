@@ -6,12 +6,12 @@ namespace hpcserial{
 	class inputstream
 	{
 	private:
-		std::string filename;
+		char* filename;
 		std::ifstream binfile;
 		char* memblock;
 		int numFloats;
 	public:
-		inputstream(const std::string &filename);
+		inputstream(char* filename);
 
 		hpc::array<float>* nextChunk();
 

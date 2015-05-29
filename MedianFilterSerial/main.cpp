@@ -24,8 +24,7 @@ int main(int argc, char* argv[])
 	{
 		if (argc >= 2)
 		{
-			std::string filename = argv[1];
-			std::cout << filename.c_str() << std::endl;
+			char* filename = argv[1];
 			hpcserial::inputstream inputstream(filename);
 
 			hpc::array<float>* chunk = inputstream.nextChunk();

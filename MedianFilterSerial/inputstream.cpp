@@ -1,7 +1,7 @@
 #include "inputstream.h"
 
 
-hpcserial::inputstream::inputstream(const std::string &filename) : filename(filename)
+hpcserial::inputstream::inputstream(char* filename) : filename(filename)
 {
 	binfile.open(filename, std::ios::in | std::ios::binary);
 	numFloats = 10;
