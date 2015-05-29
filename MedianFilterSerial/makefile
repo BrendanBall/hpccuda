@@ -2,8 +2,8 @@ CC=gcc
 CXX=g++
 RM=rm -f
 DEBUG = -g
-LDFLAGS = -Wall $(DEBUG)
-CPPFLAGS = -Wall -c $(DEBUG)
+LDFLAGS = -Wall -std=c++11 $(DEBUG)
+CPPFLAGS = -Wall -std=c++11 -c $(DEBUG)
 SRCS=main.cpp inputstream.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
@@ -19,7 +19,7 @@ depend: .depend
 	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
 
 run:
-	./medianfilter
+	./medianfilter points.bin
 
 clean:
 	$(RM) $(OBJS)
