@@ -7,9 +7,10 @@ namespace hpcserial{
 	{
 	private:
 		char* filename;
-		std::ifstream binfile;
-		char* memblock;
 		int numFloats;
+		float* floats;
+		hpc::array<float>* floatarr;
+		FILE* file;
 	public:
 		inputstream(char* filename);
 

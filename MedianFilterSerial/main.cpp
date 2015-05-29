@@ -29,7 +29,6 @@ int main(int argc, char* argv[])
 
 			hpc::array<float>* chunk = inputstream.nextChunk();
 
-
 			for (unsigned int i = 0; i < chunk -> size; ++i)
 			{
 				std::cout << chunk -> pointer[i] << std::endl;

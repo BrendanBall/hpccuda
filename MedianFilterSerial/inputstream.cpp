@@ -3,22 +3,20 @@
 
 hpcserial::inputstream::inputstream(char* filename) : filename(filename)
 {
-	binfile.open(filename, std::ios::in | std::ios::binary);
-	numFloats = 10;
-	memblock = new char[numFloats*sizeof(float)];
+	file = fopen(filename, "rb");
+	numFloats = 2e1;
+	floats = new float[numFloats];
 	
 }
 
 hpc::array<float>* hpcserial::inputstream::nextChunk()
 {
-	if (binfile.is_open())
+	
+	if (file)
 	{
-		hpc::array<float>* farr = new hpc::array<float>(numFloats, (float*)memblock);
-
-		binfile.read(memblock, numFloats*sizeof(float));
-
-		return farr;
-
+		floatarr = new hpc::array<float>(numFloats, (float*)floats);
+		fread((void*)floats, sizeof(float), numFloats, file);
+		return floatarr;
 	}
 	else
 	{
@@ -30,5 +28,7 @@ hpc::array<float>* hpcserial::inputstream::nextChunk()
 
 hpcserial::inputstream::~inputstream()
 {
-	binfile.close();
+	delete[] floats;
+	delete floatarr;
+	fclose(file);
 }
