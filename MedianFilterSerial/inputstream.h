@@ -1,7 +1,7 @@
+#pragma once
 #include <iostream>
 #include <fstream>
 #include "structs.h"
-#pragma once
 namespace hpcserial{
 	class inputstream
 	{

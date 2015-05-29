@@ -4,9 +4,10 @@
 hpcserial::inputstream::inputstream(char* filename) : filename(filename)
 {
 	file = fopen(filename, "rb");
-	numFloats = 2e1;
+	numFloats = 1000000;
 	floats = new float[numFloats];
-	
+	floatarr = new hpc::array<float>(numFloats, (float*)floats);
+
 }
 
 hpc::array<float>* hpcserial::inputstream::nextChunk()
@@ -14,8 +15,8 @@ hpc::array<float>* hpcserial::inputstream::nextChunk()
 	
 	if (file)
 	{
-		floatarr = new hpc::array<float>(numFloats, (float*)floats);
-		fread((void*)floats, sizeof(float), numFloats, file);
+		int remainingfloats = fread((void*)floats, sizeof(float), numFloats, file);
+		floatarr->size = remainingfloats;
 		return floatarr;
 	}
 	else
