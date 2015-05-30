@@ -4,7 +4,7 @@
 hpcserial::inputstream::inputstream(char* filename) : filename(filename)
 {
 	file = fopen(filename, "rb");
-	numFloats = 1000000;
+	numFloats = 1000000; // buffer size
 	floats = new float[numFloats];
 	floatarr = new hpc::array<float>(numFloats, (float*)floats);
 
