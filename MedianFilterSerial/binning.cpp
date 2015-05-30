@@ -15,22 +15,36 @@ void hpcserial::binning::processBin()
 {
 	hpc::array<float>* floatarr;
 	float inverseRes = 1 / (float)resolution;
-
+	unsigned int x;
+	unsigned int y;
 	do 
 	{
 		floatarr = inputstream.nextChunk();
+		
 
 		for (unsigned int i = 0; i < floatarr->size; i += 2)
 		{
-			unsigned int x = (int)((double)floatarr->pointer[i] / inverseRes);
-			unsigned int y = (int)((double)floatarr->pointer[i + 1] / inverseRes);
-			if (y >= resolution || x >= resolution)
+			// coordinates can be between 0 and 1, including 1 but there is no bin for 1;
+			// integer division doesn't work for including the last upper bound so have to manually check it.
+			if (floatarr->pointer[i] == 1)
 			{
-				std::cout << y << " " << floatarr->pointer[i + 1] << " " << x << " " << floatarr->pointer[i] << std::endl;
-
+				x = resolution - 1;
 			}
 			else
-				bin[y * resolution + x]++;
+			{
+				x = (int)(floatarr->pointer[i] / inverseRes);
+
+			}
+			if (floatarr->pointer[i + 1] == 1)
+			{
+				y = resolution - 1;
+			}
+			else
+			{
+				y = (int)(floatarr->pointer[i + 1] / inverseRes);
+			}
+			
+			bin[y * resolution + x]++;
 
 		}
 		
