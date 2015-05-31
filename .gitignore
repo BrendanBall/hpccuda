@@ -36,3 +36,4 @@ MedianFilterSerial.vcxproj.filters
 *.exe
 *.out
 *.app
+histrogram/

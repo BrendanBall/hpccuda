@@ -6,19 +6,19 @@ namespace hpcserial
 	class smoothing
 	{
 	private:
-		int* bins;
-		int* window;
 		size_t resolution;
 		size_t binsize;
+		int* bins;
 		size_t filtersize;
+		int* window;
 	public:
 		smoothing(size_t resolution, size_t binsize, int* bins, size_t filtersize);
 
 		void applyFilter();
 
-		int hpcserial::smoothing::median(int);
+		int median(int currentBin);
 
-		void hpcserial::smoothing::sorttest();
+		void sorttest();
 
 		~smoothing();
 	};

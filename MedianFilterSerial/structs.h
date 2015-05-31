@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+
 namespace hpc
 {
 	template < typename T >

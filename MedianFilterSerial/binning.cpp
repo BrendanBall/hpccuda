@@ -1,5 +1,7 @@
 #include "binning.h"
 #include <iostream>
+#include <cstring>
+
 
 
 hpcserial::binning::binning(size_t res, char* filename) : resolution(res), inputstream(filename)
