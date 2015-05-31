@@ -1,6 +1,7 @@
 #include "smoothing.h"
 #include <iostream>
 #include <algorithm>
+#include "printcsv.h"
 
 hpcserial::smoothing::smoothing(size_t resolution, size_t binsize, int* bins, size_t filtersize) : resolution(resolution), binsize(binsize), bins(bins), filtersize(filtersize)
 {
@@ -13,21 +14,11 @@ void hpcserial::smoothing::applyFilter()
 {
 	for (unsigned int i = 0; i < binsize; ++i)
 	{
-		
 		bins[i] = median(i);
 	}
 
-
-	for (unsigned int i = 0; i < resolution; ++i)
-	{
-		for (unsigned int j = 0; j < resolution; ++j)
-		{
-			std::cout << bins[i*resolution + j] << "\t";
-
-		}
-		std::cout << std::endl;
-
-	}
+	hpc::printcsv(resolution, bins);
+	
 }
 
 int hpcserial::smoothing::median(int currentBin)

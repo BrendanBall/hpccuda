@@ -1,6 +1,8 @@
 #include "binning.h"
 #include <iostream>
 #include <cstring>
+#include "printcsv.h"
+
 
 
 
@@ -54,20 +56,8 @@ hpc::array<int>* hpcserial::binning::processBin()
 	while (floatarr->size > 0);
 
 	
-	/*unsigned int total = 0;
-	for (unsigned int i = 0; i < resolution; ++i)
-	{
-		for (unsigned int j = 0; j < resolution; ++j)
-		{
-			std::cout << bins[i*resolution + j] << "\t" ;
-			total += bins[i*resolution + j];
-
-		}
-		std::cout << std::endl;
-
-	}
-	std::cout << total << std::endl;*/
-
+	
+	hpc::printcsv(resolution, bins);
 
 	hpc::array<int>* binarr = new hpc::array<int>(resolution*resolution, bins);
 	return binarr;
