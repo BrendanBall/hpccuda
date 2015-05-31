@@ -4,14 +4,14 @@
 
 hpcserial::binning::binning(size_t res, char* filename) : resolution(res), inputstream(filename)
 {
-	bin = new int[res * res];
+	bins = new int[res * res];
 	// initialize bin array to all zeroes
-	memset(bin, 0, res * res * sizeof(float));
+	memset(bins, 0, res * res * sizeof(float));
 	
 }
 
 
-void hpcserial::binning::processBin()
+hpc::array<int>* hpcserial::binning::processBin()
 {
 	hpc::array<float>* floatarr;
 	float inverseRes = 1 / (float)resolution;
@@ -44,7 +44,7 @@ void hpcserial::binning::processBin()
 				y = (int)(floatarr->pointer[i + 1] / inverseRes);
 			}
 			
-			bin[y * resolution + x]++;
+			bins[y * resolution + x]++;
 
 		}
 		
@@ -52,21 +52,23 @@ void hpcserial::binning::processBin()
 	while (floatarr->size > 0);
 
 	
-	unsigned int total = 0;
+	/*unsigned int total = 0;
 	for (unsigned int i = 0; i < resolution; ++i)
 	{
 		for (unsigned int j = 0; j < resolution; ++j)
 		{
-			std::cout << bin[i*resolution + j] << "\t" ;
-			total += bin[i*resolution + j];
+			std::cout << bins[i*resolution + j] << "\t" ;
+			total += bins[i*resolution + j];
 
 		}
 		std::cout << std::endl;
 
 	}
-	std::cout << total << std::endl;
+	std::cout << total << std::endl;*/
 
-	
+
+	hpc::array<int>* binarr = new hpc::array<int>(resolution*resolution, bins);
+	return binarr;
 
 }
 
@@ -74,5 +76,5 @@ void hpcserial::binning::processBin()
 
 hpcserial::binning::~binning()
 {
-	delete[] bin;
+	delete[] bins;
 }

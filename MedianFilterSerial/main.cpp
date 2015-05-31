@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include "binning.h"
+#include "smoothing.h"
 
 bool isLittleEndian()
 {
@@ -22,15 +23,19 @@ int main(int argc, char* argv[])
 	// This program will only work on systems using little endian as the binary data will be copied straight into memory as floats
 	if (isLittleEndian())
 	{
-		if (argc >= 3)
+		if (argc >= 4)
 		{
 			char* filename = argv[1];
-			int binres;
-			std::stringstream int_str(argv[2]);
-			if (int_str >> binres)
+			size_t binres;
+			size_t filtersize;
+			std::stringstream str_res(argv[2]);
+			std::stringstream str_fsize(argv[3]);
+			if (str_res >> binres && str_fsize >> filtersize)
 			{
 				hpcserial::binning binning(binres, filename);
-				binning.processBin();
+				hpc::array<int>* binarr = binning.processBin();
+				hpcserial::smoothing smoothing(binres, binarr->size, binarr->pointer, filtersize);
+				smoothing.applyFilter();
 				std::cout << "done" << std::endl;
 
 			}
