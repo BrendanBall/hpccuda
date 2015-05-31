@@ -8,14 +8,14 @@ namespace hpcserial
 	{
 
 	private:
-		int* bin;
+		int* bins;
 		size_t resolution;
 		hpcserial::inputstream inputstream;
 
 	public:
 		binning(size_t res, char* filename);
 
-		void processBin();
+		hpc::array<int>* processBin();
 
 		~binning();
 	};
