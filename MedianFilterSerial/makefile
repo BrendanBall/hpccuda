@@ -4,7 +4,7 @@ RM=rm -f
 DEBUG = -g
 LDFLAGS = -Wall -std=c++11 $(DEBUG)
 CPPFLAGS = -Wall -std=c++11 -c $(DEBUG)
-SRCS=main.cpp inputstream.cpp
+SRCS=main.cpp inputstream.cpp binning.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: medianfilter
@@ -19,7 +19,7 @@ depend: .depend
 	$(CXX) $(CPPFLAGS) -MM $^>>./.depend;
 
 run:
-	./medianfilter points.bin
+	./medianfilter points.bin 10
 
 clean:
 	$(RM) $(OBJS)
