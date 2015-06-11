@@ -55,9 +55,8 @@ hpc::array<int>* hpcserial::binning::processBin()
 	}
 	while (floatarr->size > 0);
 
-	
-	
 	hpc::printcsv(resolution, bins);
+	hpc::printFileCsv(resolution, bins, "points_uf.csv");
 
 	hpc::array<int>* binarr = new hpc::array<int>(resolution*resolution, bins);
 	return binarr;

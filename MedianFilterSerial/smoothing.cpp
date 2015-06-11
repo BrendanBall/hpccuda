@@ -18,6 +18,8 @@ void hpcserial::smoothing::applyFilter()
 	}
 
 	hpc::printcsv(resolution, bins);
+	hpc::printFileCsv(resolution, bins, "points_f.csv");
+
 	
 }
 

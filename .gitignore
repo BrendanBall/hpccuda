@@ -6,6 +6,7 @@
 .depend
 *.bin
 *.user
+*.csv
 medianfilter
 Debug/
 MedianFilterSerial.opensdf
