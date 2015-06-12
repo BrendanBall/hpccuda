@@ -47,15 +47,16 @@ hpc::array<int>* hpcserial::binning::processBin()
 			{
 				y = (int)(floatarr->pointer[i + 1] / inverseRes);
 			}
-			
 			bins[y * resolution + x]++;
+
 
 		}
 		
 	}
 	while (floatarr->size > 0);
 
-	hpc::printcsv(resolution, bins);
+	//hpc::printcsv(resolution, bins);
+	std::cout << "binning complete"<< std::endl;
 	hpc::printFileCsv(resolution, bins, "points_uf.csv");
 
 	hpc::array<int>* binarr = new hpc::array<int>(resolution*resolution, bins);

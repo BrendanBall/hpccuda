@@ -6,6 +6,7 @@
 hpcserial::smoothing::smoothing(size_t resolution, size_t binsize, int* bins, size_t filtersize) : resolution(resolution), binsize(binsize), bins(bins), filtersize(filtersize)
 {
 	window = new int[filtersize * filtersize];
+	
 }
 
 
@@ -14,10 +15,12 @@ void hpcserial::smoothing::applyFilter()
 {
 	for (unsigned int i = 0; i < binsize; ++i)
 	{
+		//std::cout << i << std::endl;
 		bins[i] = median(i);
 	}
 
-	hpc::printcsv(resolution, bins);
+	//hpc::printcsv(resolution, bins);
+	std::cout << "smoothing complete" << std::endl;
 	hpc::printFileCsv(resolution, bins, "points_f.csv");
 
 	
@@ -25,25 +28,28 @@ void hpcserial::smoothing::applyFilter()
 
 int hpcserial::smoothing::median(int currentBin)
 {
+	
 	int binx = currentBin % resolution;
 	int biny = currentBin / resolution;
 	int halfFS = int(filtersize / 2);
-	int startx = binx - halfFS;
-	int starty = biny - halfFS;
-	int endx = startx + filtersize;
-	int endy = starty + filtersize;
+	size_t startx = binx - halfFS;
+	size_t starty = biny - halfFS;
+	size_t endx = startx + filtersize;
+	size_t endy = starty + filtersize;
+
 	//std::cout << startx << " " << endx << " " << starty << " " <<endy << std::endl;
+
+	
 
 		 
 	int i = 0;
-	for (int y = starty; y < endy; ++y)
+	for (size_t y = starty; y < endy; ++y)
 	{
-		for (int x = startx; x < endx; ++x)
+		for (size_t x = startx; x < endx; ++x)
 		{
-			if (y >= 0 && x >= 0)
+			if (y >= 0 && y < resolution && x >= 0 && x < resolution)
 			{
 				window[i] = bins[y*resolution + x];
-				//std::cout << window[i] << " ";
 				++i;
 			}
 		}
@@ -87,5 +93,4 @@ void hpcserial::smoothing::sorttest()
 
 hpcserial::smoothing::~smoothing()
 {
-
 }
