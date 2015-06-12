@@ -2,6 +2,7 @@
 #include <iostream>
 #include <stdio.h>
 #include <sstream>
+#include <cstring>
 
 void hpc::printcsv(size_t resolution, int* bins)
 {
@@ -87,9 +88,11 @@ void hpc::printFileCsv(size_t resolution, int* bins, char* filename)
 
 				}
 			}
-			ss << std::endl;
+			if (y != resolution - 1){
+				ss << std::endl;
+
+			}
 		}
-		ss << std::endl;
 		fwrite(ss.str().c_str(), sizeof(char), strlen(ss.str().c_str()), file);
 		fclose(file);
 	}
