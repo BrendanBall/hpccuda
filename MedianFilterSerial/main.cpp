@@ -2,6 +2,7 @@
 #include <sstream>
 #include "binning.h"
 #include "smoothing.h"
+#include "timer.h"
 
 bool isLittleEndian()
 {
@@ -33,9 +34,22 @@ int main(int argc, char* argv[])
 			if (str_res >> binres && str_fsize >> filtersize)
 			{
 				hpcserial::binning binning(binres, filename);
+				timer timer;
+
 				hpc::array<int>* binarr = binning.processBin();
+
+				unsigned int time = timer.Stop();
+				std::cout << "time: " << time << std::endl;
+
 				hpcserial::smoothing smoothing(binres, binarr->size, binarr->pointer, filtersize);
+
+				timer.Start();
+
 				smoothing.applyFilter();
+
+				time = timer.Stop();
+				std::cout << "time: " << time << std::endl;
+
 				std::cout << "done" << std::endl;
 
 			}

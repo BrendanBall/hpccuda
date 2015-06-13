@@ -17,6 +17,7 @@ hpcserial::binning::binning(size_t res, char* filename) : resolution(res), input
 
 hpc::array<int>* hpcserial::binning::processBin()
 {
+
 	hpc::array<float>* floatarr;
 	float inverseRes = 1 / (float)resolution;
 	unsigned int x;
