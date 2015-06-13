@@ -3,6 +3,9 @@
 #include <stdio.h>
 #include <sstream>
 #include <cstring>
+#include <time.h>
+#include <fstream>
+
 
 void hpc::printcsv(size_t resolution, int* bins)
 {
@@ -46,7 +49,7 @@ void hpc::printcsv(size_t resolution, int* bins)
 
 }
 
-void hpc::printFileCsv(size_t resolution, int* bins, char* filename)
+void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 {
 	FILE* file = fopen(filename, "w");
 	std::ostringstream ss;
@@ -99,3 +102,31 @@ void hpc::printFileCsv(size_t resolution, int* bins, char* filename)
 	
 }
 
+// from stackoverflow 
+// http://stackoverflow.com/questions/997946/how-to-get-current-time-and-date-in-c
+const std::string hpc::currentDateTime()
+{
+	time_t     now = time(0);
+	struct tm  tstruct;
+	char       buf[80];
+	tstruct = *localtime(&now);
+	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+
+	return buf;
+}
+
+void hpc::writeResultsFile(char* filename, size_t binres, size_t filtersize, unsigned int binningTime, unsigned int smoothingTime)
+{
+	std::ofstream resultsfile("results.csv", std::ios_base::app);
+	if (resultsfile.is_open())
+	{
+		resultsfile << currentDateTime() << ",";
+		resultsfile << filename << ",";
+		resultsfile << binres << ",";
+		resultsfile << filtersize << ",";
+		resultsfile << binningTime << ",";
+		resultsfile << smoothingTime << "\n";
+
+
+	}
+}

@@ -1,11 +1,13 @@
 #include <iostream>
 #include <sstream>
-#include <fstream>
-#include <time.h>
 #include "binning.h"
 #include "smoothing.h"
 #include "timer.h"
 #include "printcsv.h"
+#include <string>
+#include <sstream>
+
+
 
 
 bool isLittleEndian()
@@ -22,34 +24,17 @@ bool isLittleEndian()
 	}
 }
 
-// from stackoverflow 
-// http://stackoverflow.com/questions/997946/how-to-get-current-time-and-date-in-c
-const std::string currentDateTime()
-{
-	time_t     now = time(0);
-	struct tm  tstruct;
-	char       buf[80];
-	tstruct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
 
-	return buf;
+
+std::string getBaseName(char* filepath)
+{
+	std::string path(filepath);
+	int length = strlen(filepath);
+	int start = path.find_last_of("\\/") == size_t(-1) ? 0 : path.find_last_of("\\/") + 1;
+	std::string name = path.substr(start, path.find_last_of("."));
+	return name;
 }
 
-void writeResultsFile(char* filename, size_t binres, size_t filtersize, unsigned int binningTime, unsigned int smoothingTime)
-{
-	std::ofstream resultsfile("results.csv", std::ios_base::app);
-	if (resultsfile.is_open())
-	{
-		resultsfile << currentDateTime() << ",";
-		resultsfile << filename << ",";
-		resultsfile << binres << ",";
-		resultsfile << filtersize << ",";
-		resultsfile << binningTime << ",";
-		resultsfile << smoothingTime << "\n";
-
-		
-	}
-}
 
 int main(int argc, char* argv[])
 {
@@ -66,8 +51,7 @@ int main(int argc, char* argv[])
 			std::stringstream str_fsize(argv[3]);
 			if (str_res >> binres && str_fsize >> filtersize)
 			{
-				std::cout << filename << std::endl;
-
+				getBaseName(filename);
 				std::cout << "binning starting" << std::endl;
 
 				timer timer;
@@ -79,7 +63,10 @@ int main(int argc, char* argv[])
 				std::cout << "time for binning: " << binningTime << std::endl;
 				std::cout << "writing bins to csv" << std::endl;
 
-				hpc::printFileCsv(binres, binarr->pointer, "points_uf.csv");
+
+				std::ostringstream ufss;
+				ufss << getBaseName(filename) << "_" << binres << "_" << filtersize << "_uf.csv";
+				hpc::printFileCsv(binres, binarr->pointer, ufss.str().c_str());
 
 				std::cout << "smoothing starting" << std::endl;
 
@@ -92,10 +79,14 @@ int main(int argc, char* argv[])
 				std::cout << "time for smoothing: " << smoothingTime << std::endl;
 
 
-				writeResultsFile(filename, binres, filtersize, binningTime, smoothingTime);
+				hpc::writeResultsFile(filename, binres, filtersize, binningTime, smoothingTime);
 
 				std::cout << "writing bins to csv" << std::endl;
-				hpc::printFileCsv(binres, binarr->pointer, "points_f.csv");
+				std::ostringstream fss;
+
+				fss << getBaseName(filename) << "_" << binres << "_" << filtersize << "_f.csv";
+
+				hpc::printFileCsv(binres, binarr->pointer, fss.str().c_str());
 
 				std::cout << "done" << std::endl;
 
