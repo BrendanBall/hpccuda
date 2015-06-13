@@ -1,3 +1,4 @@
+// Copied and modified this timer code from HPC workshop code
 #include "timer.h"
 
 #ifdef _WIN32

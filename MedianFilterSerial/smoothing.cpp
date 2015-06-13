@@ -1,7 +1,6 @@
 #include "smoothing.h"
 #include <iostream>
 #include <algorithm>
-#include "printcsv.h"
 
 hpcserial::smoothing::smoothing(size_t resolution, size_t binsize, int* bins, size_t filtersize) : resolution(resolution), binsize(binsize), bins(bins), filtersize(filtersize)
 {
@@ -20,8 +19,6 @@ void hpcserial::smoothing::applyFilter()
 	}
 
 	//hpc::printcsv(resolution, bins);
-	std::cout << "smoothing complete" << std::endl;
-	hpc::printFileCsv(resolution, bins, "points_f.csv");
 
 	
 }
@@ -93,4 +90,5 @@ void hpcserial::smoothing::sorttest()
 
 hpcserial::smoothing::~smoothing()
 {
+	delete[] window;
 }
