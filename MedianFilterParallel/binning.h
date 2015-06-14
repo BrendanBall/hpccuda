@@ -12,7 +12,7 @@ namespace hpcparallel
 		size_t resolution;
 		hpcparallel::inputstream inputstream;
 		int numThreads;
-		int numFloats;// buffer size
+		int chunkSize;// buffer size
 
 
 	public:
