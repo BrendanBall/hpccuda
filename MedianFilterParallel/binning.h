@@ -11,6 +11,9 @@ namespace hpcparallel
 		int* bins;
 		size_t resolution;
 		hpcparallel::inputstream inputstream;
+		int numThreads;
+		int numFloats;// buffer size
+
 
 	public:
 		binning(size_t res, char* filename);

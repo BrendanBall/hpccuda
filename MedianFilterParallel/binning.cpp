@@ -1,15 +1,17 @@
 #include "binning.h"
 #include <iostream>
 #include <cstring>
+#include <omp.h>
 
 
 
 
-hpcparallel::binning::binning(size_t res, char* filename) : resolution(res), inputstream(filename)
+hpcparallel::binning::binning(size_t res, char* filename) : resolution(res), inputstream(filename), numThreads(omp_get_max_threads()), numFloats(1000000)
 {
 	bins = new int[res * res];
 	// initialize bin array to all zeroes
 	memset(bins, 0, res * res * sizeof(float));
+	std::cout << "number of threads: " << numThreads << std::endl;
 	
 }
 
@@ -17,13 +19,14 @@ hpcparallel::binning::binning(size_t res, char* filename) : resolution(res), inp
 hpc::array<int>* hpcparallel::binning::processBin()
 {
 
-	hpc::array<float>* floatarr;
 	float inverseRes = 1 / (float)resolution;
 	unsigned int x;
 	unsigned int y;
+	float* floats = new float[numFloats];
+	hpc::array<float>* floatarr = new hpc::array<float>(numFloats, (float*)floats);
 	do 
 	{
-		floatarr = inputstream.nextChunk();
+		inputstream.nextChunk(floatarr);
 		
 
 		for (unsigned int i = 0; i < floatarr->size; i += 2)
