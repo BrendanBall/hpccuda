@@ -18,6 +18,7 @@ timer::~timer()
 
 #elif __linux__
 
+
 timer::timer() 
 { 
 	Start(); 

@@ -4,7 +4,7 @@ RM=rm -f
 DEBUG = -g
 LDFLAGS = -Wall -std=c++11 $(DEBUG)
 CPPFLAGS = -Wall -std=c++11 -c $(DEBUG)
-SRCS=main.cpp inputstream.cpp binning.cpp smoothing.cpp printcsv.cpp
+SRCS=main.cpp inputstream.cpp binning.cpp smoothing.cpp printcsv.cpp timer.cpp
 OBJS=$(subst .cpp,.o,$(SRCS))
 
 all: medianfilter

@@ -29,7 +29,6 @@ bool isLittleEndian()
 std::string getBaseName(char* filepath)
 {
 	std::string path(filepath);
-	int length = strlen(filepath);
 	int start = path.find_last_of("\\/") == size_t(-1) ? 0 : path.find_last_of("\\/") + 1;
 	std::string name = path.substr(start, path.find_last_of("."));
 	return name;
