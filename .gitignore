@@ -9,12 +9,13 @@
 *.csv
 medianfilter
 Debug/
-MedianFilterSerial.opensdf
-MedianFilterSerial.sdf
-MedianFilterSerial.sln
-MedianFilterSerial.v12.suo
-MedianFilterSerial.vcxproj
-MedianFilterSerial.vcxproj.filters
+*.opensdf
+*.sdf
+*.sln
+*.v12.suo
+*.vcxproj
+*.vcxproj.filters
+*.pdb
 # Precompiled Headers
 *.gch
 *.pch
