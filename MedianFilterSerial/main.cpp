@@ -56,8 +56,8 @@ int main(int argc, char* argv[])
 				timer timer;
 				hpcserial::binning binning(binres, filename);
 				hpc::array<int>* binarr = binning.processBin();
-
 				unsigned int binningTime = timer.Stop();
+
 				std::cout << "binning complete" << std::endl;
 				std::cout << "time for binning: " << binningTime << std::endl;
 				std::cout << "writing bins to csv" << std::endl;
@@ -66,14 +66,14 @@ int main(int argc, char* argv[])
 				std::ostringstream ufss;
 				ufss << getBaseName(filename) << "_" << binres << "_" << filtersize << "_uf.csv";
 				hpc::printFileCsv(binres, binarr->pointer, ufss.str().c_str());
-
+				//hpc::printcsv(binres, binarr->pointer);
 				std::cout << "smoothing starting" << std::endl;
 
 				timer.Start();
 				hpcserial::smoothing smoothing(binres, binarr->size, binarr->pointer, filtersize);
 				smoothing.applyFilter();
-
 				unsigned int smoothingTime = timer.Stop();
+
 				std::cout << "smoothing complete" << std::endl;
 				std::cout << "time for smoothing: " << smoothingTime << std::endl;
 

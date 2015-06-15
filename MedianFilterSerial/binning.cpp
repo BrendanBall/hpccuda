@@ -5,7 +5,7 @@
 
 
 
-hpcserial::binning::binning(size_t res, char* filename) : resolution(res), inputstream(filename)
+hpcserial::binning::binning(int res, char* filename) : resolution(res), inputstream(filename)
 {
 	bins = new int[res * res];
 	// initialize bin array to all zeroes
@@ -19,14 +19,14 @@ hpc::array<int>* hpcserial::binning::processBin()
 
 	hpc::array<float>* floatarr;
 	float inverseRes = 1 / (float)resolution;
-	unsigned int x;
-	unsigned int y;
+	int x;
+	int y;
 	do 
 	{
 		floatarr = inputstream.nextChunk();
 		
 
-		for (unsigned int i = 0; i < floatarr->size; i += 2)
+		for (int i = 0; i < floatarr->size; i += 2)
 		{
 			// coordinates can be between 0 and 1, including 1 but there is no bin for 1;
 			// integer division doesn't work for including the last upper bound so have to manually check it.
@@ -55,7 +55,6 @@ hpc::array<int>* hpcserial::binning::processBin()
 	}
 	while (floatarr->size > 0);
 
-	//hpc::printcsv(resolution, bins);
 
 	hpc::array<int>* binarr = new hpc::array<int>(resolution*resolution, bins);
 	return binarr;

@@ -9,11 +9,11 @@ namespace hpcserial
 
 	private:
 		int* bins;
-		size_t resolution;
+		int resolution;
 		hpcserial::inputstream inputstream;
 
 	public:
-		binning(size_t res, char* filename);
+		binning(int res, char* filename);
 
 		hpc::array<int>* processBin();
 
