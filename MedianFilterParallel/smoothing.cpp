@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 #include <math.h> 
+#include "cuda_runtime.h"
+#include "device_launch_parameters.h"
 
 hpcparallel::smoothing::smoothing(int resolution, int binsize, int* bins, int filtersize) : resolution(resolution), binsize(binsize), bins(bins), filtersize(filtersize)
 {
@@ -13,7 +15,10 @@ hpcparallel::smoothing::smoothing(int resolution, int binsize, int* bins, int fi
 
 }
 
+__global__ void medianFilter()
+{
 
+}
 
 int* hpcparallel::smoothing::applyFilter()
 {
@@ -91,4 +96,5 @@ int hpcparallel::smoothing::median(int currentBin)
 hpcparallel::smoothing::~smoothing()
 {
 	delete window;
+	delete filteredBins;
 }
