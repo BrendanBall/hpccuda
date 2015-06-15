@@ -9,7 +9,7 @@ hpcserial::binning::binning(int res, char* filename) : resolution(res), inputstr
 {
 	bins = new int[res * res];
 	// initialize bin array to all zeroes
-	memset(bins, 0, res * res * sizeof(float));
+	memset(bins, 0, res * res * sizeof(int));
 	
 }
 

@@ -71,7 +71,7 @@ int main(int argc, char* argv[])
 
 				timer.Start();
 				hpcparallel::smoothing smoothing(binres, binarr->size, binarr->pointer, filtersize);
-				smoothing.applyFilter();
+				int* filteredBins = smoothing.applyFilter();
 
 				unsigned int smoothingTime = timer.Stop();
 				std::cout << "smoothing complete" << std::endl;
@@ -85,7 +85,7 @@ int main(int argc, char* argv[])
 
 				fss << getBaseName(filename) << "_" << binres << "_" << filtersize << "_f.csv";
 
-				hpc::printFileCsv(binres, binarr->pointer, fss.str().c_str());
+				hpc::printFileCsv(binres, filteredBins, fss.str().c_str());
 
 				std::cout << "done" << std::endl;
 

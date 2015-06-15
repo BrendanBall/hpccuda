@@ -7,22 +7,25 @@ hpcparallel::smoothing::smoothing(int resolution, int binsize, int* bins, int fi
 {
 	window = new int[filtersize * filtersize];
 	memset(window, 0, filtersize * filtersize * sizeof(int));
+	filteredBins = new int[binsize];
+	memset(filteredBins, 0, binsize * sizeof(int));
+
 
 }
 
 
 
-void hpcparallel::smoothing::applyFilter()
+int* hpcparallel::smoothing::applyFilter()
 {
 	for (int i = 0; i < binsize; ++i)
 	{
 		//std::cout << i << std::endl;
-		bins[i] = median(i);
+		filteredBins[i] = median(i);
 	}
 
 	//hpc::printcsv(resolution, bins);
 
-
+	return filteredBins;
 }
 
 int hpcparallel::smoothing::median(int currentBin)

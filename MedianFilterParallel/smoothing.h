@@ -11,10 +11,12 @@ namespace hpcparallel
 		int* bins;
 		int filtersize;
 		int* window;
+		int* filteredBins;
+
 	public:
 		smoothing(int resolution, int binsize, int* bins, int filtersize);
 
-		void applyFilter();
+		int* applyFilter();
 
 		int median(int currentBin);
 

@@ -11,7 +11,7 @@ hpcparallel::binning::binning(int res, char* filename) : resolution(res), inputs
 {
 	bins = new int[res * res];
 	// initialize bin array to all zeroes
-	memset(bins, 0, res * res * sizeof(float));
+	memset(bins, 0, res * res * sizeof(int));
 	std::cout << "number of threads: " << numThreads << std::endl;
 	
 }
