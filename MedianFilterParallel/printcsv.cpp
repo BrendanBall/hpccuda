@@ -51,28 +51,28 @@ void hpc::printcsv(size_t resolution, int* bins)
 
 void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 {
-	FILE* file = fopen(filename, "w");
-	std::ostringstream ss;
+	
+	std::ofstream ss(filename);
 
 
-	if (file)
+	if (ss.is_open())
 	{
 		ss << ",";
 		float inverseRes = 1 / (float)resolution;
 		for (unsigned int i = 0; i < resolution; ++i)
 		{
-			if (i == resolution - 1)
+			if (i < resolution - 1)
 			{
-				ss << inverseRes * i;
+				ss << inverseRes * i << ",";
 
 			}
 			else
 			{
-				ss << inverseRes * i << ",";
+				ss << inverseRes * i << std::endl;
+
 			}
 
 		}
-		ss << std::endl;
 
 		for (unsigned int y = 0; y < resolution; ++y)
 		{
@@ -80,14 +80,15 @@ void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 
 			for (unsigned int x = 0; x < resolution; ++x)
 			{
-				if (x == resolution - 1)
+				if (x < resolution - 1)
 				{
-					ss << bins[y * resolution + x];
+					ss << bins[y * resolution + x] << ",";
+
 
 				}
 				else
 				{
-					ss << bins[y * resolution + x] << ",";
+					ss << bins[y * resolution + x];
 
 				}
 			}
@@ -96,8 +97,8 @@ void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 
 			}
 		}
-		fwrite(ss.str().c_str(), sizeof(char), strlen(ss.str().c_str()), file);
-		fclose(file);
+		
+
 	}
 	
 }
