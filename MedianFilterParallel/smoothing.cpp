@@ -2,6 +2,7 @@
 #include <iostream>
 #include <algorithm>
 #include <math.h> 
+#include <cstring>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
 

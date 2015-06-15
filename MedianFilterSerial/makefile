@@ -1,4 +1,4 @@
-CC=gcc
+CC=nvcc
 CXX=g++
 RM=rm -f
 DEBUG = -g

@@ -2,6 +2,8 @@
 #include <iostream>
 #include <algorithm>
 #include <math.h> 
+#include <cstring>
+
 
 hpcserial::smoothing::smoothing(int resolution, int binsize, int* bins, int filtersize) : resolution(resolution), binsize(binsize), bins(bins), filtersize(filtersize)
 {
