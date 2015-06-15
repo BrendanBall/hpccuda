@@ -7,11 +7,11 @@
 #include <fstream>
 
 
-void hpc::printcsv(size_t resolution, int* bins)
+void hpc::printcsv(int resolution, int* bins)
 {
 	std::cout << ",";
 	float inverseRes = 1 / (float)resolution;
-	for (unsigned int i = 0; i < resolution; ++i)
+	for (int i = 0; i < resolution; ++i)
 	{
 		if (i == resolution - 1)
 		{
@@ -26,11 +26,11 @@ void hpc::printcsv(size_t resolution, int* bins)
 	}
 	std::cout << std::endl;
 
-	for (unsigned int y = 0; y < resolution; ++y)
+	for (int y = 0; y < resolution; ++y)
 	{
-		std::cout << inverseRes * y <<",";
+		std::cout << inverseRes * y << ",";
 
-		for (unsigned int x = 0; x < resolution; ++x)
+		for (int x = 0; x < resolution; ++x)
 		{
 			if (x == resolution - 1)
 			{
@@ -49,9 +49,8 @@ void hpc::printcsv(size_t resolution, int* bins)
 
 }
 
-void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
+void hpc::printFileCsv(int resolution, int* bins, const char* filename)
 {
-	
 	std::ofstream ss(filename);
 
 
@@ -59,7 +58,7 @@ void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 	{
 		ss << ",";
 		float inverseRes = 1 / (float)resolution;
-		for (unsigned int i = 0; i < resolution; ++i)
+		for (int i = 0; i < resolution; ++i)
 		{
 			if (i < resolution - 1)
 			{
@@ -74,11 +73,11 @@ void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 
 		}
 
-		for (unsigned int y = 0; y < resolution; ++y)
+		for (int y = 0; y < resolution; ++y)
 		{
 			ss << inverseRes * y << ",";
 
-			for (unsigned int x = 0; x < resolution; ++x)
+			for (int x = 0; x < resolution; ++x)
 			{
 				if (x < resolution - 1)
 				{
@@ -92,15 +91,17 @@ void hpc::printFileCsv(size_t resolution, int* bins, const char* filename)
 
 				}
 			}
-			if (y != resolution - 1){
+			if (y != resolution - 1)
+			{
 				ss << std::endl;
 
 			}
 		}
-		
+
 
 	}
-	
+
+
 }
 
 // from stackoverflow 
@@ -116,7 +117,7 @@ const std::string hpc::currentDateTime()
 	return buf;
 }
 
-void hpc::writeResultsFile(char* filename, size_t binres, size_t filtersize, unsigned int binningTime, unsigned int smoothingTime)
+void hpc::writeResultsFile(char* filename, int binres, int filtersize, unsigned int binningTime, unsigned int smoothingTime)
 {
 	std::ofstream resultsfile("results.csv", std::ios_base::app);
 	if (resultsfile.is_open())

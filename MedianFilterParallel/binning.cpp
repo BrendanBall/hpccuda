@@ -7,7 +7,7 @@
 
 
 
-hpcparallel::binning::binning(size_t res, char* filename) : resolution(res), inputstream(filename), numThreads(omp_get_max_threads()), chunkSize(1000000)
+hpcparallel::binning::binning(int res, char* filename) : resolution(res), inputstream(filename), numThreads(omp_get_max_threads()), chunkSize(1000000)
 {
 	bins = new int[res * res];
 	// initialize bin array to all zeroes
@@ -22,15 +22,15 @@ hpc::array<int>* hpcparallel::binning::processBin()
 
 	float inverseRes = 1 / (float)resolution;
 	
-	size_t binsize = resolution * resolution;
+	int binsize = resolution * resolution;
 	
 	int numChunks = (int)(ceil((float)inputstream.getFileSize() / (sizeof(float) * chunkSize)));
 	std::cout << "num chunks: " << numChunks << std::endl;
 
 #pragma omp parallel 
 	{
-		unsigned int x;
-		unsigned int y;
+		int x;
+		int y;
 		float* p_floats = new float[chunkSize];
 		hpc::array<float>* p_floatarr = new hpc::array<float>(chunkSize, (float*)p_floats);
 		int* p_bins = new int[binsize];
@@ -43,7 +43,7 @@ hpc::array<int>* hpcparallel::binning::processBin()
 			inputstream.nextChunk(p_floatarr);
 
 
-			for (unsigned int i = 0; i < p_floatarr->size; i += 2)
+			for (int i = 0; i < p_floatarr->size; i += 2)
 			{
 				// coordinates can be between 0 and 1, including 1 but there is no bin for 1;
 				// integer division doesn't work for including the last upper bound so have to manually check it.
@@ -70,7 +70,7 @@ hpc::array<int>* hpcparallel::binning::processBin()
 			}
 		}
 #pragma omp critical
-		for (size_t i = 0; i < binsize; ++i)
+		for (int i = 0; i < binsize; ++i)
 		{
 			bins[i] = bins[i] + p_bins[i];
 		}

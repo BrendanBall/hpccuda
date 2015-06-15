@@ -44,8 +44,8 @@ int main(int argc, char* argv[])
 		if (argc >= 4)
 		{
 			char* filename = argv[1];
-			size_t binres;
-			size_t filtersize;
+			int binres;
+			int filtersize;
 			std::stringstream str_res(argv[2]);
 			std::stringstream str_fsize(argv[3]);
 			if (str_res >> binres && str_fsize >> filtersize)

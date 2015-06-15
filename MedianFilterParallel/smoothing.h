@@ -6,13 +6,13 @@ namespace hpcparallel
 	class smoothing
 	{
 	private:
-		size_t resolution;
-		size_t binsize;
+		int resolution;
+		int binsize;
 		int* bins;
-		size_t filtersize;
+		int filtersize;
 		int* window;
 	public:
-		smoothing(size_t resolution, size_t binsize, int* bins, size_t filtersize);
+		smoothing(int resolution, int binsize, int* bins, int filtersize);
 
 		void applyFilter();
 
