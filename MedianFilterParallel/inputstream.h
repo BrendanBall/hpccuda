@@ -11,7 +11,7 @@ namespace hpcparallel{
 		std::mutex mtx;
 		char* filename;
 		int numFloats;
-		size_t filesize;
+		long long filesize;
 		//float* floats;
 		//hpc::array<float>* floatarr;
 		FILE* file;

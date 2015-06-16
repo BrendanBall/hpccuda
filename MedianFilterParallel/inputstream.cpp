@@ -1,16 +1,28 @@
 #include "inputstream.h"
 #include <sys/stat.h>
+#include <stdlib.h>
+
+#ifdef _WIN32
+#include <Windows.h>
+#define stat64 _stat64
+#endif
 
 
 hpcparallel::inputstream::inputstream(char* filename) : mtx(), filename(filename)
 {
 	file = fopen(filename, "rb");
+	if (!file)
+	{
+		std::cout << "file not found, filename: "<< filename << std::endl;
+		exit(1);
+	}
+
 	numFloats = 1000000; // buffer size
 	//floats = new float[numFloats];
 	//floatarr = new hpc::array<float>(numFloats, (float*)floats);
 
-	struct stat st;
-	stat(filename, &st);
+	struct stat64 st;
+	stat64(filename, &st);
 	filesize = st.st_size;
 	std::cout << "filesize: " << filesize << std::endl;
 
@@ -48,5 +60,4 @@ hpcparallel::inputstream::~inputstream()
 {
 	//delete[] floats;
 	//delete floatarr;
-	fclose(file);
 }

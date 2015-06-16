@@ -1,9 +1,15 @@
 #include "inputstream.h"
+#include <stdlib.h>
 
 
 hpcserial::inputstream::inputstream(char* filename) : filename(filename)
 {
 	file = fopen(filename, "rb");
+	if (!file)
+	{
+		std::cout << "file not found, filename: " << filename << std::endl;
+		exit(1);
+	}
 	numFloats = 1000000; // buffer size
 	floats = new float[numFloats];
 	floatarr = new hpc::array<float>(numFloats, (float*)floats);
