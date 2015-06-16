@@ -1,5 +1,7 @@
 #pragma once
 #include "structs.h"
+#include "cuda_runtime.h"
+
 
 namespace hpcparallel
 {
@@ -17,6 +19,8 @@ namespace hpcparallel
 		smoothing(int resolution, int binsize, int* bins, int filtersize);
 
 		int* applyFilter();
+
+		cudaError_t cudaMedianFilter(int* dev_bins, int* dev_filteredBins);
 
 		int median(int currentBin);
 
