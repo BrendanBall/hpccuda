@@ -29,6 +29,17 @@ __global__ void medianFilterKernel(const int* dev_bins, int* dev_filteredBins, c
 	}
 }
 
+#define cudaSafe(statuscode, description) { gpuAssert(statuscode, description, __FILE__, __LINE__); }
+
+inline void gpuAssert(cudaError_t code, char* description, char *file, int line, bool abort=true)
+{
+   if (code != cudaSuccess) 
+   {
+      std::cout <<"Cuda error: " << description << ", " << cudaGetErrorString(code) << " " << file << " " << line << std::endl;;
+      if (abort) exit(code);
+   }
+}
+
 int* hpcparallel::smoothing::applyFilter()
 {
 	//for (int i = 0; i < binsize; ++i)
@@ -39,51 +50,22 @@ int* hpcparallel::smoothing::applyFilter()
 	int* dev_bins = 0;
 	int* dev_filteredBins = 0;
 	cudaMedianFilter(dev_bins, dev_filteredBins);
-	cudaFree(dev_bins);
-	cudaFree(dev_filteredBins);
-	cudaError_t cudaStatus = cudaDeviceReset();
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "cudaDeviceReset failed" << std::endl;
-	}
+	cudaSafe(cudaDeviceReset(), "cuda device reset");
+	
 	return filteredBins;
 }
 
-cudaError_t hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBins)
+void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBins)
 {
+
+	cudaSafe(cudaSetDevice(0), "set device");
+
+	cudaSafe(cudaMalloc((void**)&dev_bins, binsize * sizeof(int)), "cuda malloc dev_bins");
+	cudaSafe(cudaMalloc((void**)&dev_filteredBins, binsize * sizeof(int)), "cuda malloc dev_filteredBins");
+
+	cudaSafe(cudaMemcpy(dev_bins, bins, binsize * sizeof(int), cudaMemcpyHostToDevice), "cuda memcpy htd dev_bins");
+	cudaSafe(cudaMemset(dev_filteredBins, 0, binsize * sizeof(int)), "cuda memset dev_filteredBins");
 	
-
-	cudaError_t cudaStatus;
-	cudaStatus = cudaSetDevice(0);
-
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "Cuda failed to set cuda device as 0" << std::endl;
-		return cudaStatus;
-	}
-
-	cudaStatus = cudaMalloc((void**)&dev_bins, binsize * sizeof(int));
-	cudaStatus = cudaMalloc((void**)&dev_filteredBins, binsize * sizeof(int));
-
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "cudaMalloc failed" << std::endl;
-		return cudaStatus;
-	}
-
-	cudaStatus = cudaMemcpy(dev_bins, bins, binsize * sizeof(int), cudaMemcpyHostToDevice);
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "cudaMemcpy failed" << std::endl;
-		return cudaStatus;
-	}
-
-	cudaStatus = cudaMemset(dev_filteredBins, 0, binsize * sizeof(int));
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "cudaMemset failed" << std::endl;
-		return cudaStatus;
-	}
 
 	dim3 numThreads(BLOCKSIZE, BLOCKSIZE);
 	dim3 numBlocks;
@@ -95,30 +77,14 @@ cudaError_t hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_fil
 
 	medianFilterKernel<<<numBlocks, numThreads>>>(dev_bins, dev_filteredBins, resolution, binsize, filtersize, filtersize*filtersize);
 
-	cudaStatus = cudaGetLastError();
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "kernel launch failed: \n" << cudaGetErrorString(cudaStatus) << std::endl;
-		return cudaStatus;
-	}
+	cudaSafe(cudaGetLastError(), "cuda launch");
+	
+	cudaSafe(cudaDeviceSynchronize(), "cuda device synchronize");
 
-	cudaStatus = cudaDeviceSynchronize();
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "cudaDeviceSynchronize returned error: " << cudaStatus << std::endl;
-		return cudaStatus;
-	}
-
-	cudaStatus = cudaMemcpy(filteredBins, dev_filteredBins, binsize * sizeof(int), cudaMemcpyDeviceToHost);
-	if (cudaStatus != cudaSuccess)
-	{
-		std::cout << "cudaMemcpy to host failed" << std::endl;
-		return cudaStatus;
-	}
-
-	cudaFree(dev_bins);
-	cudaFree(dev_filteredBins);
-	return cudaStatus;
+	cudaSafe(cudaMemcpy(filteredBins, dev_filteredBins, binsize * sizeof(int), cudaMemcpyDeviceToHost), "cuda memcpy dth dev_filteredBins");
+	
+	cudaSafe(cudaFree(dev_bins), "cuda free");
+	cudaSafe(cudaFree(dev_filteredBins), "cuda free");
 }
 
 

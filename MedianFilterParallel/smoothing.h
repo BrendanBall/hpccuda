@@ -20,7 +20,7 @@ namespace hpcparallel
 
 		int* applyFilter();
 
-		cudaError_t cudaMedianFilter(int* dev_bins, int* dev_filteredBins);
+		void cudaMedianFilter(int* dev_bins, int* dev_filteredBins);
 
 		int median(int currentBin);
 
