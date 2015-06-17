@@ -5,6 +5,7 @@
 #include <cstring>
 #include "cuda_runtime.h"
 #include "device_launch_parameters.h"
+#include <thrust/sort.h>
 
 #define BLOCKSIZE 32
 
@@ -18,14 +19,50 @@ hpcparallel::smoothing::smoothing(int resolution, int binsize, int* bins, int fi
 
 }
 
-__global__ void medianFilterKernel(const int* dev_bins, int* dev_filteredBins, const int resolution, const int binsize, const int filtersize, const int windowsize)
+__global__ void medianFilterKernel(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize, int filtersize, int halfFS, int windowsize)
 {
-	int x = blockDim.x * blockIdx.x + threadIdx.x;
-	int y = blockDim.y * blockIdx.y + threadIdx.y;
+	int tx = blockDim.x * blockIdx.x + threadIdx.x;
+	int ty = blockDim.y * blockIdx.y + threadIdx.y;
 
-	if (x < resolution && y < resolution)
+	int startx = tx - halfFS;
+	int starty = ty - halfFS;
+	int endx = startx + filtersize;
+	int endy = starty + filtersize;
+
+	if (tx < resolution && ty < resolution)
 	{
-		dev_filteredBins[y*resolution + x] = 2;
+		//__shared__ int* sbins = new int[(blockDim.y + halfFS)*(blockDim.x + halfFS)];
+
+		int* window = new int[windowsize];
+
+		int i = 0;
+		for (int y = starty; y < endy; ++y)
+		{
+			for (int x = startx; x < endx; ++x)
+			{
+				if (y >= 0 && y < resolution && x >= 0 && x < resolution)
+				{
+					window[i] = dev_bins[y*resolution + x];
+					++i;
+				}
+			}
+		}
+
+		thrust::sort(thrust::seq, window, window + i);
+
+		int median;
+		if (i % 2 == 0)
+		{
+			//throwing away decimal part of average
+			median = (window[(i / 2) - 1] + window[(i / 2)]) / 2;
+		}
+		else
+		{
+			median = window[(i / 2)];
+		}
+
+		dev_filteredBins[ty * resolution + tx] = median;
+
 	}
 }
 
@@ -35,8 +72,8 @@ inline void gpuAssert(cudaError_t code, char* description, char *file, int line,
 {
    if (code != cudaSuccess) 
    {
-      std::cout <<"Cuda error: " << description << ", " << cudaGetErrorString(code) << " " << file << " " << line << std::endl;;
-      if (abort) exit(code);
+	  std::cout <<"Cuda error: " << description << ", " << cudaGetErrorString(code) << " " << file << " " << line << std::endl;;
+	 // if (abort) exit(code);
    }
 }
 
@@ -75,7 +112,7 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 	//std::cout << "numBlocks & numThreads: " << numBlocks.x << " " << numThreads.x << " " << numBlocks.x * numThreads.x << " " << resolution << std::endl;
 	//std::cout << "numBlocks & numThreads: " << numBlocks.y << " " << numThreads.y << " " << numBlocks.y * numThreads.y << " " << resolution << std::endl;
 
-	medianFilterKernel<<<numBlocks, numThreads>>>(dev_bins, dev_filteredBins, resolution, binsize, filtersize, filtersize*filtersize);
+	medianFilterKernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
 
 	cudaSafe(cudaGetLastError(), "cuda launch");
 	
