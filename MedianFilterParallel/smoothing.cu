@@ -33,10 +33,10 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 		//shared array is 1 row/column bigger on every side for edge cases.
 		__shared__ int sm_bins[BLOCKSIZE + 2][BLOCKSIZE + 2];
 
-		//populate shared memory block
-		sm_bins[threadIdx.y + 1][threadIdx.x + 1] = dev_bins[ty*resolution + tx];
+		//populate shared memory block values which are not edge values
+		sm_bins[tly + 1][tlx + 1] = dev_bins[ty*resolution + tx];
 
-		//get edge values needed for sliding window
+		//check if index on the edge of the block
 		bool tx_left_edge = (tlx == 0);
 		bool ty_top_edge = (tly == 0);
 		bool tx_right_edge = (tlx == BLOCKSIZE - 1);
@@ -72,7 +72,7 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 		ty_top_edge &= (ty > 0);
 		ty_bot_edge &= (ty < resolution - 1);
 
-		// pull edge values into shared memory
+		// pull edge values into shared memory using threads on edges of block
 		if (tx_left_edge)
 			sm_bins[tly + 1][tlx] = dev_bins[ty*resolution + tx - 1];
 		else if (tx_right_edge)
@@ -99,9 +99,9 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 
 		int window[9] =
 		{
-			sm_bins[threadIdx.y][threadIdx.x], sm_bins[threadIdx.y][threadIdx.x + 1], sm_bins[threadIdx.y][threadIdx.x + 2],
-			sm_bins[threadIdx.y + 1][threadIdx.x], sm_bins[threadIdx.y + 1][threadIdx.x + 1], sm_bins[threadIdx.y + 1][threadIdx.x + 2],
-			sm_bins[threadIdx.y + 2][threadIdx.x], sm_bins[threadIdx.y + 2][threadIdx.x + 1], sm_bins[threadIdx.y + 2][threadIdx.x + 2]
+			sm_bins[tly][tlx], sm_bins[tly][tlx + 1], sm_bins[tly][tlx + 2],
+			sm_bins[tly + 1][tlx], sm_bins[tly + 1][tlx + 1], sm_bins[tly + 1][tlx + 2],
+			sm_bins[tly + 2][tlx], sm_bins[tly + 2][tlx + 1], sm_bins[tly + 2][tlx + 2]
 		};
 
 	
@@ -120,23 +120,25 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 			}
 		}
 		
-		int edges = 0; // count number of elements equal to -1 which are not in the global array
+		int edges = 0; // count number of elements equal to -1, values which are not in the global array
 		for (int i = 0; i < 9; ++i)
 		{
 			if (window[i] == -1)
 				edges++;
 		}
 
+		// the median is calculated only with values actually inside the array, values outside array are -1
+		// for even number of values in window calculate average between the 2 middle values
 		int median;
-		int i = (9 - edges);
-		if (i % 2 == 0)
+		int mi = (9 - edges);
+		if (mi % 2 == 0)
 		{
 			//throwing away decimal part of average
-			median = ((window[(i / 2) - 1 + edges] + window[(i / 2) + edges]) / 2);
+			median = ((window[(mi / 2) - 1 + edges] + window[(mi / 2) + edges]) / 2);
 		}
 		else
 		{
-			median = window[(i / 2) + edges];
+			median = window[(mi / 2) + edges];
 		}
 		
 			
@@ -149,41 +151,116 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 {
 	int tx = blockDim.x * blockIdx.x + threadIdx.x;
 	int ty = blockDim.y * blockIdx.y + threadIdx.y;
+	int tlx = threadIdx.x;
+	int tly = threadIdx.y;
 
-	// edge size is Filtersize/2 integer division, half the length of the window excluding the value we calculating
-	int startx = tx - EDGESIZE;
-	int starty = ty - EDGESIZE;
-	int endx = startx + FILTERSIZE;
-	int endy = starty + FILTERSIZE;
-
-
+	// edge size is Filtersize/2 integer division, half the length of the window excluding the value we calculating in the middle
+	
 	if (tx < resolution && ty < resolution)
 	{
-		//__shared__ int* sbins = new int[(blockDim.y + halfFS)*(blockDim.x + halfFS)];
+		__shared__ int sm_bins[BLOCKSIZE + FILTERSIZE - 1][BLOCKSIZE + FILTERSIZE - 1];
 
+		//populate shared memory
+		//first populate values which fall inside the block (not edge values)
+		sm_bins[tly + EDGESIZE][tlx + EDGESIZE] = dev_bins[ty*resolution + tx];
+
+		//check if index on the edge of the block
+		// in this case the edge of the block is the border of the block with thickness equal to edgesize
+		bool tx_left_edge = (tlx < EDGESIZE);
+		bool ty_top_edge = (tly < EDGESIZE);
+		bool tx_right_edge = (tlx > BLOCKSIZE - EDGESIZE - 1);
+		bool ty_bot_edge = (tly > BLOCKSIZE - EDGESIZE - 1);
+
+		// -1 padding for edge values
+		if (tx_left_edge)
+			sm_bins[tly + EDGESIZE][tlx] = -1;
+		else if (tx_right_edge)
+			sm_bins[tly + EDGESIZE][tlx + (2 * EDGESIZE)] = -1;
+		if (ty_top_edge)
+		{
+			sm_bins[tly][tlx + EDGESIZE] = -1;
+			if (tx_left_edge)
+				sm_bins[tly][tlx] = -1;
+			else if (tx_right_edge)
+				sm_bins[tly][tlx + (2 * EDGESIZE)] = -1;
+
+		}
+		else if (ty_bot_edge)
+		{
+			sm_bins[tly + (2 * EDGESIZE)][tlx + EDGESIZE] = -1;
+			if (tx_left_edge)
+				sm_bins[tly + (2 * EDGESIZE)][tlx] = -1;
+			else if (tx_right_edge)
+				sm_bins[tly + (2 * EDGESIZE)][tlx + (2 * EDGESIZE)] = -1;
+		}
+
+		//check if shared memory edge is global edge and then don't include it
+		tx_left_edge &= (tx - EDGESIZE  > 0);
+		tx_right_edge &= (tx - EDGESIZE < resolution);
+		ty_top_edge &= (ty - EDGESIZE > 0);
+		ty_bot_edge &= (ty - EDGESIZE < resolution);
+
+		//populate edge values
+		if (tx_left_edge)
+			sm_bins[tly + EDGESIZE][tlx] = dev_bins[ty*resolution + tx - EDGESIZE];
+		else if (tx_right_edge)
+			sm_bins[tly + EDGESIZE][tlx + (2 * EDGESIZE)] = dev_bins[ty*resolution + tx + EDGESIZE];
+		if (ty_top_edge)
+		{
+			sm_bins[tly][tlx + EDGESIZE] = dev_bins[(ty - EDGESIZE)*resolution + tx];
+			if (tx_left_edge)
+				sm_bins[tly][tlx] = dev_bins[(ty - EDGESIZE)*resolution + tx - EDGESIZE];
+			else if (tx_right_edge)
+				sm_bins[tly][tlx + (2 * EDGESIZE)] = dev_bins[(ty - EDGESIZE)*resolution + tx + EDGESIZE];
+
+		}
+		else if (ty_bot_edge)
+		{
+			sm_bins[tly + (2 * EDGESIZE)][tlx + EDGESIZE] = dev_bins[(ty + EDGESIZE)*resolution + tx];
+			if (tx_left_edge)
+				sm_bins[tly + (2 * EDGESIZE)][tlx] = dev_bins[(ty + EDGESIZE)*resolution + tx - EDGESIZE];
+			else if (tx_right_edge)
+				sm_bins[tly + (2 * EDGESIZE)][tlx + (2 * EDGESIZE)] = dev_bins[(ty + EDGESIZE)*resolution + tx + EDGESIZE];
+		}
+
+		__syncthreads();
+
+		
+
+		// create window for this thread index
 		int window[WINDOWSIZE];
-		int edges = 0; // count number of elements equal to -1 which are not in the global array
+
+		int startx = tlx;
+		int starty = tly;
+		int endx = tlx + FILTERSIZE;
+		int endy = tly + FILTERSIZE;
 
 		int i = 0;
 		for (int y = starty; y < endy; ++y)
 		{
 			for (int x = startx; x < endx; ++x)
 			{
-				if (y >= 0 && y < resolution && x >= 0 && x < resolution)
-				{
-					window[i] = dev_bins[y*resolution + x];
-					
-				}
-				else
-				{
-					window[i] = -1;
-					edges++;
-				}
+				window[i] = sm_bins[y][x];
 				i++;
+				
 			}
 		}
-
+		if (tx == 31 && ty == 31)
+		{
+			printf("%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
+		}
+		//sort window
 		thrust::sort(thrust::seq, window, window + WINDOWSIZE);
+
+		int edges = 0; // count number of elements equal to -1, values which are not in the global array
+
+		for (int i = 0; i < WINDOWSIZE; ++i)
+		{
+			if (window[i] == -1)
+				edges++;
+		}
+		// the median is calculated only with values actually inside the array, values outside array are -1
+		// for even number of values in window calculate average between the 2 middle values
 		int median;
 		int mi = (WINDOWSIZE - edges);
 
@@ -202,54 +279,6 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 	}
 }
 
-//template __global__ void medianFilterTemplateKernel<4>(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize, int filtersize, int halfFS, int windowsize);
-__global__ void medianFilterKernel(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize, int filtersize, int halfFS, int windowsize)
-{
-	int tx = blockDim.x * blockIdx.x + threadIdx.x;
-	int ty = blockDim.y * blockIdx.y + threadIdx.y;
-
-	int startx = tx - halfFS;
-	int starty = ty - halfFS;
-	int endx = startx + filtersize;
-	int endy = starty + filtersize;
-
-
-	if (tx < resolution && ty < resolution)
-	{
-		//__shared__ int* sbins = new int[(blockDim.y + halfFS)*(blockDim.x + halfFS)];
-
-		int* window = new int[windowsize];
-
-		int i = 0;
-		for (int y = starty; y < endy; ++y)
-		{
-			for (int x = startx; x < endx; ++x)
-			{
-				if (y >= 0 && y < resolution && x >= 0 && x < resolution)
-				{
-					window[i] = dev_bins[y*resolution + x];
-					++i;
-				}
-			}
-		}
-
-		thrust::sort(thrust::seq, window, window + i);
-
-		int median;
-		if (i % 2 == 0)
-		{
-			//throwing away decimal part of average
-			median = (window[(i / 2) - 1] + window[(i / 2)]) / 2;
-		}
-		else
-		{
-			median = window[(i / 2)];
-		}
-
-		dev_filteredBins[ty * resolution + tx] = median;
-
-	}
-}
 
 #define cudaSafe(statuscode, description) { gpuAssert(statuscode, description, __FILE__, __LINE__); }
 
