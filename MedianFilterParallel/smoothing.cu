@@ -160,6 +160,8 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 		//__shared__ int* sbins = new int[(blockDim.y + halfFS)*(blockDim.x + halfFS)];
 
 		int window[WS];
+		int edges = 0; // count number of elements equal to -1 which are not in the global array
+
 		int i = 0;
 		for (int y = starty; y < endy; ++y)
 		{
@@ -168,22 +170,29 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 				if (y >= 0 && y < resolution && x >= 0 && x < resolution)
 				{
 					window[i] = dev_bins[y*resolution + x];
-					++i;
+					
 				}
+				else
+				{
+					window[i] = -1;
+					edges++;
+				}
+				i++;
 			}
 		}
 
-		thrust::sort(thrust::seq, window, window + i);
-
+		thrust::sort(thrust::seq, window, window + WS);
 		int median;
-		if (i % 2 == 0)
+		int mi = (WS - edges);
+
+		if (mi % 2 == 0)
 		{
 			//throwing away decimal part of average
-			median = (window[(i / 2) - 1] + window[(i / 2)]) / 2;
+			median = ((window[(mi / 2) - 1 + edges] + window[(mi / 2) + edges]) / 2);
 		}
 		else
 		{
-			median = window[(i / 2)];
+			median = window[(mi / 2) + edges];
 		}
 
 		dev_filteredBins[ty * resolution + tx] = median;
@@ -254,8 +263,8 @@ inline void gpuAssert(cudaError_t code, char* description, char *file, int line,
 int* hpcparallel::smoothing::applyFilter()
 {
 	struct cudaFuncAttributes funcAttrib;
-	cudaSafe(cudaFuncGetAttributes(&funcAttrib, medianFilterTemplateKernel<4>), "cudafuncgetattributes");
-	printf("%s numRegs=%d\n", "medianFilter3x3Kernel", funcAttrib.numRegs);
+	cudaSafe(cudaFuncGetAttributes(&funcAttrib, medianFilterTemplateKernel<20>), "cudafuncgetattributes");
+	printf("%s numRegs=%d\n", "medianFilterTemplateKernel", funcAttrib.numRegs);
 	int* dev_bins = 0;
 	int* dev_filteredBins = 0;
 	cudaMedianFilter(dev_bins, dev_filteredBins);
@@ -285,15 +294,12 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 	//std::cout << "numBlocks & numThreads: " << numBlocks.y << " " << numThreads.y << " " << numBlocks.y * numThreads.y << " " << resolution << std::endl;
 
 	//medianFilterKernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-	if (filtersize == 3)
+	
+	switch (filtersize)
 	{
-		medianFilter3x3Kernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, 3, 1, 9);
-
-	}
-	else
-	{
-		switch (filtersize)
-		{
+		case 3:
+			medianFilter3x3Kernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, 3, 1, 9);
+			break;
 		case 4:
 			medianFilterTemplateKernel<16> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
 			break;
@@ -309,11 +315,29 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 		case 8:
 			medianFilterTemplateKernel<64> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
 			break;
+		case 15:
+			medianFilterTemplateKernel<225> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			break;
+		case 16:
+			medianFilterTemplateKernel<256> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			break;
+		case 17:
+			medianFilterTemplateKernel<289> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			break;
+		case 18:
+			medianFilterTemplateKernel<324> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			break;
+		case 19:
+			medianFilterTemplateKernel<361> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			break;
+		case 20:
+			medianFilterTemplateKernel<400> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			break;
 		case 21:
 			medianFilterTemplateKernel<441> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
 			break;
-		}
 	}
+	
 
 	cudaSafe(cudaGetLastError(), "cuda launch");
 	
