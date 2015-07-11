@@ -29,6 +29,7 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 
 	if (tx < resolution && ty < resolution)
 	{
+		//edge values for shared memory are values needed by the window but whose median is not calculated in this block.
 		//shared array is 1 row/column bigger on every side for edge cases.
 		__shared__ int sm_bins[BLOCKSIZE + 2][BLOCKSIZE + 2];
 
@@ -71,7 +72,7 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 		ty_top_edge &= (ty > 0);
 		ty_bot_edge &= (ty < resolution - 1);
 
-		// pull values into shared memory
+		// pull edge values into shared memory
 		if (tx_left_edge)
 			sm_bins[tly + 1][tlx] = dev_bins[ty*resolution + tx - 1];
 		else if (tx_right_edge)
@@ -143,23 +144,24 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 	}
 }
 
-template<int WS>
-__global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize, int filtersize, int halfFS, int windowsize)
+template<int WINDOWSIZE, int FILTERSIZE, int EDGESIZE>
+__global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize)
 {
 	int tx = blockDim.x * blockIdx.x + threadIdx.x;
 	int ty = blockDim.y * blockIdx.y + threadIdx.y;
 
-	int startx = tx - halfFS;
-	int starty = ty - halfFS;
-	int endx = startx + filtersize;
-	int endy = starty + filtersize;
+	// edge size is Filtersize/2 integer division, half the length of the window excluding the value we calculating
+	int startx = tx - EDGESIZE;
+	int starty = ty - EDGESIZE;
+	int endx = startx + FILTERSIZE;
+	int endy = starty + FILTERSIZE;
 
 
 	if (tx < resolution && ty < resolution)
 	{
 		//__shared__ int* sbins = new int[(blockDim.y + halfFS)*(blockDim.x + halfFS)];
 
-		int window[WS];
+		int window[WINDOWSIZE];
 		int edges = 0; // count number of elements equal to -1 which are not in the global array
 
 		int i = 0;
@@ -181,9 +183,9 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 			}
 		}
 
-		thrust::sort(thrust::seq, window, window + WS);
+		thrust::sort(thrust::seq, window, window + WINDOWSIZE);
 		int median;
-		int mi = (WS - edges);
+		int mi = (WINDOWSIZE - edges);
 
 		if (mi % 2 == 0)
 		{
@@ -262,9 +264,9 @@ inline void gpuAssert(cudaError_t code, char* description, char *file, int line,
 
 int* hpcparallel::smoothing::applyFilter()
 {
-	struct cudaFuncAttributes funcAttrib;
-	cudaSafe(cudaFuncGetAttributes(&funcAttrib, medianFilterTemplateKernel<20>), "cudafuncgetattributes");
-	printf("%s numRegs=%d\n", "medianFilterTemplateKernel", funcAttrib.numRegs);
+	//struct cudaFuncAttributes funcAttrib;
+	//cudaSafe(cudaFuncGetAttributes(&funcAttrib, medianFilterTemplateKernel<20>), "cudafuncgetattributes");
+	//printf("%s numRegs=%d\n", "medianFilterTemplateKernel", funcAttrib.numRegs);
 	int* dev_bins = 0;
 	int* dev_filteredBins = 0;
 	cudaMedianFilter(dev_bins, dev_filteredBins);
@@ -300,41 +302,23 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 		case 3:
 			medianFilter3x3Kernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, 3, 1, 9);
 			break;
-		case 4:
-			medianFilterTemplateKernel<16> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-			break;
 		case 5:
-			medianFilterTemplateKernel<25> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-			break;
-		case 6:
-			medianFilterTemplateKernel<36> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			medianFilterTemplateKernel<25, 5, 2> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 		case 7:
-			medianFilterTemplateKernel<49> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-			break;
-		case 8:
-			medianFilterTemplateKernel<64> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			medianFilterTemplateKernel<49, 7, 3> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 		case 15:
-			medianFilterTemplateKernel<225> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-			break;
-		case 16:
-			medianFilterTemplateKernel<256> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			medianFilterTemplateKernel<225, 15, 7> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 		case 17:
-			medianFilterTemplateKernel<289> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-			break;
-		case 18:
-			medianFilterTemplateKernel<324> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			medianFilterTemplateKernel<289, 17, 8> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 		case 19:
-			medianFilterTemplateKernel<361> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-			break;
-		case 20:
-			medianFilterTemplateKernel<400> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			medianFilterTemplateKernel<361, 19, 9> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 		case 21:
-			medianFilterTemplateKernel<441> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
+			medianFilterTemplateKernel<441, 21, 10> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 	}
 	
