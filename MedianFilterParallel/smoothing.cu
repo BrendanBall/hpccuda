@@ -196,9 +196,9 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 
 		//check if shared memory edge is global edge and then don't include it
 		tx_left_edge &= (tx - EDGESIZE  > 0);
-		tx_right_edge &= (tx - EDGESIZE < resolution);
+		tx_right_edge &= (tx + EDGESIZE < resolution);
 		ty_top_edge &= (ty - EDGESIZE > 0);
-		ty_bot_edge &= (ty - EDGESIZE < resolution);
+		ty_bot_edge &= (ty + EDGESIZE < resolution);
 
 		//populate edge values
 		if (tx_left_edge)
@@ -245,10 +245,24 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 				
 			}
 		}
+
+		/*if (tx == 0 && ty == 0)
+		{
+			printf("0x0y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
+		}
+		if (tx == 31 && ty == 0)
+		{
+			printf("31x0y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
+		}
+		if (tx == 0 && ty == 31)
+		{
+			printf("0x31y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
+		}
 		if (tx == 31 && ty == 31)
 		{
-			printf("%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
-		}
+			printf("31x31y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
+		}*/
+
 		//sort window
 		thrust::sort(thrust::seq, window, window + WINDOWSIZE);
 
