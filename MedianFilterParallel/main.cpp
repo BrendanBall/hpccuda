@@ -71,14 +71,16 @@ int main(int argc, char* argv[])
 
 				timer.Start();
 				hpcparallel::smoothing smoothing(binres, binarr->size, binarr->pointer, filtersize);
-				int* filteredBins = smoothing.applyFilter();
+				float kernelTime = 0;
+				int* filteredBins = smoothing.applyFilter(&kernelTime);
 
 				unsigned int smoothingTime = timer.Stop();
 				std::cout << "smoothing complete" << std::endl;
+				std::cout << "time for kernel execution: " << int(kernelTime + 0.5) << std::endl;
 				std::cout << "time for smoothing: " << smoothingTime << std::endl;
 
 
-				hpc::writeResultsFile(filename, binres, filtersize, binningTime, smoothingTime);
+				hpc::writeResultsFile(filename, binres, filtersize, binningTime, smoothingTime, kernelTime);
 
 				std::cout << "writing bins to csv" << std::endl;
 				std::ostringstream fss;

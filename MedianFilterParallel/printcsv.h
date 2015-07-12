@@ -10,6 +10,6 @@ namespace hpc
 
 	const std::string currentDateTime();
 
-	void writeResultsFile(char* filename, int binres, int filtersize, unsigned int binningTime, unsigned int smoothingTime);
+	void writeResultsFile(char* filename, int binres, int filtersize, unsigned int binningTime, unsigned int smoothingTime, float kernelTime);
 }
 

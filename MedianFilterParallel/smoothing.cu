@@ -107,7 +107,7 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 	
 		//thrust::sort(thrust::seq, window, window + 9);
 
-		//bubble sort
+		//sort
 		for (int i = 0; i < 9; ++i){
 		
 			for (int j = i + 1; j < 9; ++j){
@@ -305,21 +305,24 @@ inline void gpuAssert(cudaError_t code, char* description, char *file, int line,
    }
 }
 
-int* hpcparallel::smoothing::applyFilter()
+int* hpcparallel::smoothing::applyFilter(float* kernelTime)
 {
 	//struct cudaFuncAttributes funcAttrib;
 	//cudaSafe(cudaFuncGetAttributes(&funcAttrib, medianFilterTemplateKernel<20>), "cudafuncgetattributes");
 	//printf("%s numRegs=%d\n", "medianFilterTemplateKernel", funcAttrib.numRegs);
 	int* dev_bins = 0;
 	int* dev_filteredBins = 0;
-	cudaMedianFilter(dev_bins, dev_filteredBins);
+	cudaMedianFilter(dev_bins, dev_filteredBins, kernelTime);
 	cudaSafe(cudaDeviceReset(), "cuda device reset");
 	
 	return filteredBins;
 }
 
-void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBins)
+void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBins, float* kernelTime)
 {
+	cudaEvent_t start, stop;
+	cudaEventCreate(&start);
+	cudaEventCreate(&stop);
 
 	cudaSafe(cudaSetDevice(0), "set device");
 
@@ -339,7 +342,7 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 	//std::cout << "numBlocks & numThreads: " << numBlocks.y << " " << numThreads.y << " " << numBlocks.y * numThreads.y << " " << resolution << std::endl;
 
 	//medianFilterKernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, filtersize, int(filtersize / 2), filtersize*filtersize);
-	
+	cudaEventRecord(start);
 	switch (filtersize)
 	{
 		case 3:
@@ -364,7 +367,7 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 			medianFilterTemplateKernel<441, 21, 10> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 	}
-	
+	cudaEventRecord(stop);
 
 	cudaSafe(cudaGetLastError(), "cuda launch");
 	
@@ -374,6 +377,10 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 	
 	cudaSafe(cudaFree(dev_bins), "cuda free");
 	cudaSafe(cudaFree(dev_filteredBins), "cuda free");
+
+	cudaEventSynchronize(stop);
+	
+	cudaEventElapsedTime(kernelTime, start, stop);
 }
 
 

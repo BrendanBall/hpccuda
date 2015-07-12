@@ -18,9 +18,9 @@ namespace hpcparallel
 	public:
 		smoothing(int resolution, int binsize, int* bins, int filtersize);
 
-		int* applyFilter();
+		int* applyFilter(float* kernelTime);
 
-		void cudaMedianFilter(int* dev_bins, int* dev_filteredBins);
+		void cudaMedianFilter(int* dev_bins, int* dev_filteredBins, float* kernelTime);
 
 		int median(int currentBin);
 

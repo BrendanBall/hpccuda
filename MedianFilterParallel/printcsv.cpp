@@ -117,7 +117,7 @@ const std::string hpc::currentDateTime()
 	return buf;
 }
 
-void hpc::writeResultsFile(char* filename, int binres, int filtersize, unsigned int binningTime, unsigned int smoothingTime)
+void hpc::writeResultsFile(char* filename, int binres, int filtersize, unsigned int binningTime, unsigned int smoothingTime, float kernelTime)
 {
 	std::ofstream resultsfile("results.csv", std::ios_base::app);
 	if (resultsfile.is_open())
@@ -127,7 +127,9 @@ void hpc::writeResultsFile(char* filename, int binres, int filtersize, unsigned 
 		resultsfile << binres << ",";
 		resultsfile << filtersize << ",";
 		resultsfile << binningTime << ",";
-		resultsfile << smoothingTime << "\n";
+		resultsfile << smoothingTime << ",";
+		resultsfile << int(kernelTime + 0.5) << "\n";
+
 
 
 	}
