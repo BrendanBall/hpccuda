@@ -354,6 +354,15 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 		case 7:
 			medianFilterTemplateKernel<49, 7, 3> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
+		case 9:
+			medianFilterTemplateKernel<81, 9, 4> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
+			break;
+		case 11:
+			medianFilterTemplateKernel<121, 11, 5> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
+			break;
+		case 13:
+			medianFilterTemplateKernel<169, 13, 6> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
+			break;
 		case 15:
 			medianFilterTemplateKernel<225, 15, 7> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
