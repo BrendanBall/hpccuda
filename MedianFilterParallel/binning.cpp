@@ -12,7 +12,7 @@ hpcparallel::binning::binning(int res, char* filename) : resolution(res), inputs
 	bins = new int[res * res];
 	// initialize bin array to all zeroes
 	memset(bins, 0, res * res * sizeof(int));
-	std::cout << "number of threads: " << numThreads << std::endl;
+	//std::cout << "number of threads: " << numThreads << std::endl;
 	
 }
 
@@ -25,7 +25,7 @@ hpc::array<int>* hpcparallel::binning::processBin()
 	int binsize = resolution * resolution;
 	
 	int numChunks = (int)(ceil((float)inputstream.getFileSize() / (sizeof(float) * chunkSize)));
-	std::cout << "num chunks: " << numChunks << std::endl;
+	//std::cout << "num chunks: " << numChunks << std::endl;
 
 #pragma omp parallel 
 	{

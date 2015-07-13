@@ -24,7 +24,7 @@ hpcparallel::inputstream::inputstream(char* filename) : mtx(), filename(filename
 	struct stat64 st;
 	stat64(filename, &st);
 	filesize = st.st_size;
-	std::cout << "filesize: " << filesize << std::endl;
+	//std::cout << "filesize: " << filesize << std::endl;
 
 
 }
