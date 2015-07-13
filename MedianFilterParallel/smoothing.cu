@@ -310,7 +310,7 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 
 #define cudaSafe(statuscode, description) { gpuAssert(statuscode, description, __FILE__, __LINE__); }
 
-inline void gpuAssert(cudaError_t code, char* description, char *file, int line, bool abort=true)
+inline void gpuAssert(cudaError_t code, const char* description, const char *file, int line, bool abort=true)
 {
    if (code != cudaSuccess) 
    {
