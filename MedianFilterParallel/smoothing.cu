@@ -263,8 +263,22 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 			printf("31x31y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
 		}*/
 
-		//sort window
-		thrust::sort(thrust::seq, window, window + WINDOWSIZE);
+		//sort window thrust for some reason gives an error when using filtersize of 13 and up.
+		//simple sort below appears to be faster than thrust sort.
+		//thrust::sort(thrust::seq, window, window + WINDOWSIZE);
+
+		//sort
+		for (int i = 0; i < WINDOWSIZE; ++i){
+		
+			for (int j = i + 1; j < WINDOWSIZE; ++j){
+				if (window[i] > window[j])
+				{
+					int temp = window[i];
+					window[i] = window[j];
+					window[j] = temp;
+				}
+			}
+		}
 
 		int edges = 0; // count number of elements equal to -1, values which are not in the global array
 
