@@ -102,7 +102,7 @@ int main(int argc, char* argv[])
 	{
 		std::cout << "System uses big endian, this program only supports little endian" << std::endl;
 	}
-	std::cin.get();
+	//std::cin.get();
 	return 0;
 }
 

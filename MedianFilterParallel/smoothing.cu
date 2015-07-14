@@ -20,7 +20,22 @@ hpcparallel::smoothing::smoothing(int resolution, int binsize, int* bins, int fi
 
 }
 
-__global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize, int filtersize, int halfFS, int windowsize)
+__device__ void sort(int window[], int length)
+{
+	for (int i = 0; i < length; ++i){
+		
+			for (int j = i + 1; j < length; ++j){
+				if (window[i] > window[j])
+				{
+					int temp = window[i];
+					window[i] = window[j];
+					window[j] = temp;
+				}
+			}
+		}
+}
+
+__global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins, int resolution, int binsize)
 {
 	int tx = blockDim.x * blockIdx.x + threadIdx.x;
 	int ty = blockDim.y * blockIdx.y + threadIdx.y;
@@ -106,19 +121,9 @@ __global__ void medianFilter3x3Kernel(const int* dev_bins, int* dev_filteredBins
 
 	
 		//thrust::sort(thrust::seq, window, window + 9);
-
 		//sort
-		for (int i = 0; i < 9; ++i){
-		
-			for (int j = i + 1; j < 9; ++j){
-				if (window[i] > window[j])
-				{
-					int temp = window[i];
-					window[i] = window[j];
-					window[j] = temp;
-				}
-			}
-		}
+		sort(window, 9);
+	
 		
 		int edges = 0; // count number of elements equal to -1, values which are not in the global array
 		for (int i = 0; i < 9; ++i)
@@ -246,39 +251,15 @@ __global__ void medianFilterTemplateKernel(const int* dev_bins, int* dev_filtere
 			}
 		}
 
-		/*if (tx == 0 && ty == 0)
-		{
-			printf("0x0y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
-		}
-		if (tx == 31 && ty == 0)
-		{
-			printf("31x0y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
-		}
-		if (tx == 0 && ty == 31)
-		{
-			printf("0x31y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
-		}
-		if (tx == 31 && ty == 31)
-		{
-			printf("31x31y\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n%d %d %d %d %d\n\n", window[0], window[1], window[2], window[3], window[4], window[5], window[6], window[7], window[8], window[9], window[10], window[11], window[12], window[13], window[14], window[15], window[16], window[17], window[18], window[19], window[20], window[21], window[22], window[23], window[24]);
-		}*/
+
 
 		//sort window thrust for some reason gives an error when using filtersize of 13 and up.
 		//simple sort below appears to be faster than thrust sort.
 		//thrust::sort(thrust::seq, window, window + WINDOWSIZE);
 
 		//sort
-		for (int i = 0; i < WINDOWSIZE; ++i){
+		sort(window, WINDOWSIZE);
 		
-			for (int j = i + 1; j < WINDOWSIZE; ++j){
-				if (window[i] > window[j])
-				{
-					int temp = window[i];
-					window[i] = window[j];
-					window[j] = temp;
-				}
-			}
-		}
 
 		int edges = 0; // count number of elements equal to -1, values which are not in the global array
 
@@ -360,7 +341,7 @@ void hpcparallel::smoothing::cudaMedianFilter(int* dev_bins, int* dev_filteredBi
 	switch (filtersize)
 	{
 		case 3:
-			medianFilter3x3Kernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize, 3, 1, 9);
+			medianFilter3x3Kernel << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
 			break;
 		case 5:
 			medianFilterTemplateKernel<25, 5, 2> << <numBlocks, numThreads >> >(dev_bins, dev_filteredBins, resolution, binsize);
